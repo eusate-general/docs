@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Eusate Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#ed8477",
+    "light": "#fdf0ee",
+    "dark": "#612a24"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/eusate.svg",
   "navigation": {
     "tabs": [
       {
@@ -89,8 +89,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/eusate-light.svg",
+    "dark": "/logo/eusate-dark.svg"
   },
   "navbar": {
     "links": [
