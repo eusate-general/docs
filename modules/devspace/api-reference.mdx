@@ -1,0 +1,140 @@
+---
+title: 'API Reference'
+description: 'API documentation for DevSpace callback endpoints'
+icon: 'webhook'
+---
+
+## Authentication Callback
+
+This endpoint receives authentication data from your login system after a customer successfully authenticates.
+
+<Card>
+  <strong>POST</strong> `https://api.dev.eusate.com/api/v1/lab/login/callback`
+</Card>
+
+<Warning>
+  You must authenticate this request using your API key from the platform settings.
+</Warning>
+
+### Header
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+You can find your API key in the platform settings. Create one if you haven't already.
+
+### Request Body
+
+<ParamField path="auth_token" type="string" required>
+  The authentication token for the customer. This token will be used by Sate to make authenticated requests to your functions.
+</ParamField>
+
+<ParamField path="auth_token_expires_at_seconds" type="integer" required>
+  The expiration time of the authentication token as a Unix timestamp in seconds.
+</ParamField>
+
+<ParamField path="state" type="string" required>
+  The state parameter that was included in the original login URL. This is used to match the authentication response with the correct session.
+</ParamField>
+
+### Example Request
+
+```json
+{
+  "auth_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "auth_token_expires_at_seconds": 1693440000,
+  "state": "abc123def456"
+}
+```
+
+### Response
+
+#### Success Response
+
+Returns HTTP status `200` when the authentication is processed successfully:
+
+```json
+{
+  "success": true
+}
+```
+
+#### Error Responses
+
+Returns HTTP status `400` or `403` with error details when there are issues:
+
+```json
+{
+  "detail": "Error description explaining what went wrong"
+}
+```
+
+### Status Codes
+
+<ResponseField name="200" type="Success">
+  Authentication token processed successfully
+</ResponseField>
+
+<ResponseField name="400" type="Bad Request">
+  Missing required parameters, invalid data format, or validation errors
+</ResponseField>
+
+<ResponseField name="403" type="Forbidden">
+  Authentication failed or access denied
+</ResponseField>
+
+
+## Security Considerations
+
+<Warning>
+  Always validate the state parameter to ensure the authentication response corresponds to a legitimate login request initiated by your system.
+</Warning>
+
+<Info>
+  Store minimal information in tokens and implement proper token rotation and revocation mechanisms.
+</Info>
+
+### Best Practices
+
+1. **API Key Security**: Store your API key securely and never expose it in client-side code
+2. **Validate State**: Always verify the state parameter matches an active login session
+3. **Token Security**: Use secure token generation and storage practices
+4. **Expiration**: Set appropriate token expiration times
+5. **HTTPS Only**: Ensure all communication uses HTTPS
+6. **Error Handling**: Implement proper error handling and logging
+
+## Testing the Integration
+
+### Using cURL
+
+```bash
+curl -X POST https://api.dev.eusate.com/api/v1/lab/login/callback \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "auth_token": "test_token_123",
+    "auth_token_expires_at_seconds": 1693440000,
+    "state": "test_state_456"
+  }'
+```
+
+### Testing Checklist
+
+- [ ] Callback endpoint accepts all required parameters
+- [ ] State parameter validation works correctly
+- [ ] Token expiration is handled properly
+- [ ] Error responses are returned for invalid requests
+- [ ] HTTPS is enforced for all requests
+
+## Troubleshooting
+
+### Common Issues
+
+**400 Bad Request**: Check that all required fields are included and properly formatted
+
+**403 Forbidden**: Verify the API key is correct and has proper permissions
+
+### Debug Mode
+
+During development, you can enable debug logging to see detailed request/response information in your DevSpace dashboard.
+

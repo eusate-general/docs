@@ -1,0 +1,104 @@
+---
+title: 'Authentication Configuration'
+description: 'Configure how Sate authenticates with your protected endpoints'
+icon: 'shield-check'
+---
+
+import { devspace } from '/snippets/platformlinks.mdx';
+
+## Overview
+
+Authentication configuration allows Sate to access your protected endpoints on behalf of your customers. This enables secure, personalized interactions while maintaining proper authorization controls.
+
+## Authentication Types
+
+DevSpace supports both authenticated and unauthenticated functions:
+
+- **Unauthenticated functions**: Public endpoints that don't require user credentials
+- **Authenticated functions**: Protected endpoints that require customer authentication
+
+## Configuration Settings
+
+Set up authentication on the <a href={devspace} target="_blank">DevSpace platform</a> by providing:
+
+<Steps>
+  <Step title="Login URL">
+    The endpoint where customers will authenticate
+  </Step>
+  <Step title="Authorization Location">
+    Where the auth token should be placed (header, query, body)
+  </Step>
+  <Step title="Authorization Type">
+    The type of authentication (Bearer, API Key, etc.)
+  </Step>
+  <Step title="Header Configuration">
+    Label and value format for authorization headers
+  </Step>
+</Steps>
+
+## Authentication Flow
+
+Here's how Sate handles authentication when executing protected functions:
+
+<Steps>
+  <Step title="Function Execution Request">
+    Sate determines it needs to call an authenticated function to help the customer
+  </Step>
+  <Step title="Authentication Check">
+    If the customer isn't authenticated, Sate sends them your configured login URL
+  </Step>
+  <Step title="Customer Login">
+    Customer clicks the link and enters their credentials on your platform
+  </Step>
+  <Step title="Token Exchange">
+    Your platform validates credentials and sends authentication data to our callback
+  </Step>
+  <Step title="Function Execution">
+    Sate uses the received token to execute the function on the customer's behalf
+  </Step>
+</Steps>
+
+## Implementation Requirements
+
+To use authenticated functions, your login endpoint must:
+
+### 1. Accept State Parameter
+
+Your login URL must accept a `state` parameter that we'll include:
+
+```
+https://yourapp.com/login?state=ABC123
+```
+
+### 2. Implement Callback Integration
+
+After successful authentication, send a POST request to our callback endpoint:
+
+**Endpoint**: `https://api.dev.eusate.com/api/v1/lab/login/callback`
+
+**Authentication**: You must include your API key in the Authorization header. Get your API key from the platform settings.
+
+**Required Headers**:
+- `Authorization: Bearer YOUR_API_KEY`
+- `Content-Type: application/json`
+
+**Required Body Parameters**:
+- `auth_token`: The customer's authentication token
+- `auth_token_expires_at_seconds`: Token expiration time (Unix timestamp)
+- `state`: The state parameter from the original login URL
+
+## Security Considerations
+
+<Warning>
+  Always validate the state parameter to prevent CSRF attacks and ensure tokens are properly scoped to the authenticated user.
+</Warning>
+
+<Info>
+  Tokens should have appropriate expiration times and be invalidated after use when possible.
+</Info>
+
+## Next Steps
+
+- [Create your first function](/modules/devspace/functions)
+- [Review the callback API reference](/modules/devspace/api-reference)
+- [Test your authentication flow](/modules/devspace/testing)

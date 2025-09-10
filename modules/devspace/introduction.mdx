@@ -1,57 +1,54 @@
 ---
-title: 'Dev Space'
-description: 'Module for creating tools for Sate to use to interface with your Infrastructure'
+title: 'DevSpace Overview'
+description: 'Enable Sate(AI) to interact with your infrastructure'
 icon: 'code'
 ---
-import {devspace} from '/snippets/platformlinks'; 
 
-DevSpace is where you allow Sate(AI) to do more than just spilling knowledge from resources you added in [knowledge base](/modules/knowledgebase).
+import { devspace } from '/snippets/platformlinks.mdx';
 
-In DevSpace, you are going to create tools or functions. The essence of these tools is to give Sate(AI) added super powers in attending to your customers needs.
-For Example:
-> You are an Ecommerce Company and you are using Eusate as your customer support platform
-> Your customer has a problem with an order and wants a refund, and then your customer reaches out through eusate integrations (sdk or api, discord etc.)
-> Now at this point, Sate(AI) is meant to askfor the customer details and also order id in order to confirm if truly the customer ordered the product.
-> But How will Sate(AI) accomplish this with just textual resources added in knowledge base? It is not possible,, Sate will have to escalate the problem to a Human.
-> This is what DevSpace tries to mitigate. In DevSace, you can create `refund` function and also 'get_order` functions. Sate(AI) will be able to to use these functions to verify if te customer truly ordered the product and also refund the customer.
+DevSpace enables Sate (AI) to go beyond knowledge base responses by executing custom functions that interact with your infrastructure.
 
+## What is DevSpace?
 
-In DevSpace we have 2 sections
-1. Auth Configuration
-2. functions
+DevSpace allows you to create tools and functions that give Sate enhanced capabilities for customer support. Instead of escalating complex requests to humans, Sate can perform actions directly through your APIs.
 
-### Auth Configuration
-As an organisation you have authenticated functions and unauthenticated functions. Sate(AI) will need to know how to authenticate when trying to run your authenticated functions.
-This is where Auth Configuration comes in. On the [platform]({devspace}) you are to provide your login url and also set your Authorization location, type, Header label, Header Value.
-Out of all those the login url you provide has a flow to it. It will be explained [below](#Auth Configuration Login Flow)
+### Example Use Case
 
-### Auth Configuration Login Flow
-After you have set the your Auth configuration. This section explain how Sate(AI) uses it to authenticate and run your authenticated functions. 
-When Sate is conversing with your customers, and it needs to run an authenticated function in order to reply the customer, it will send the login_url you set, to the customer to login
-now the customer will click the link and then input their normal authentication credentials they have in your platform. When it is successful, SATE(AI) will be able to run th function on the customer behalf. 
+Consider an e-commerce scenario:
 
-There required things to be setup in order for you to give us your login url
-1. You have to write a custom endpoint or extend you existing endpoint to accept a `state` parameter
-2. This custom endpoint will accept you customer credentials and then validate it and then send a POST request to our callback endpoint
-: "https:api.dev.eusate.com/api/v1/lab/login/callback where in the body the `auth_token` of the customer, the unix seconds time of the token `auth_token_expires_at_seconds` and finally the `state` that was added to your login_url.
+1. A customer requests a refund through your support channels
+2. Sate needs to verify the order exists and check refund eligibility  
+3. With DevSpace functions like `get_order` and `process_refund`, Sate can handle this automatically
+4. The customer gets immediate assistance without human intervention
 
+## Core Components
 
+DevSpace consists of two main sections:
 
-### Functions
-At the moment functions are basically http endpoints, there will be support for mcp very soon. So let's talk about the functions you will be adding.
-In order to create a function you go to this [page]({devspace}), Click on `Functions` tab and then click on `Add new function`.
-The only functions that can be created for now are `GET` functions more kinds i.e `POST`, `PATCH`, `DELETE` are coming soon.
-Important things to provide when creating a function are 
-1. Name of the function
-2. Description of the function
-3. Endpoint URL of the function (if it  has path parmans and query parmas, you will also provide their descriptions and how to get them)
-4. Authentication status of the function
-5. If the function should be used your customers or not(live or dev)
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="shield-check" href="/modules/devspace/authentication">
+    Configure how Sate authenticates with your protected endpoints
+  </Card>
+  <Card title="Functions" icon="code" href="/modules/devspace/functions">
+    Create HTTP endpoints that Sate can call to perform actions
+  </Card>
+</CardGroup>
 
+## Getting Started
 
+1. **Set up authentication** - Configure how Sate will authenticate with your APIs
+2. **Create functions** - Define the endpoints Sate can call
+3. **Test and deploy** - Validate your setup before going live
 
-### Final Notes
-I hope you have understood Dev Space. Thanks for reading
+<Card title="Access DevSpace" icon="external-link" href={devspace}>
+  Configure your DevSpace settings on the platform
+</Card>
+
+## What's Next?
+
+- Learn about [authentication configuration](/modules/devspace/authentication)
+- Create your first [function](/modules/devspace/functions)
+- Review the [API reference](/modules/devspace/api-reference) for callback endpoints
 
 
 

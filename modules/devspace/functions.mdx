@@ -1,0 +1,223 @@
+---
+title: 'Functions'
+description: 'Create HTTP endpoints that Sate can execute to perform actions'
+icon: 'code'
+---
+
+import { devspace } from '/snippets/platformlinks.mdx';
+
+## Overview
+
+Functions are HTTP endpoints that Sate can call to perform actions on your behalf. They extend your AI assistant's capabilities beyond simple knowledge retrieval to include real-time data access and system interactions.
+
+## Current Capabilities
+
+<Note>
+  Currently, only `GET` functions are supported. Support for `POST`, `PATCH`, and `DELETE` methods is coming soon. MCP (Model Context Protocol) support is also planned.
+</Note>
+
+## Creating a Function
+
+Navigate to the <a href={devspace} target="_blank">DevSpace platform</a> and follow these steps:
+
+<Steps>
+  <Step title="Access Functions">
+    Click the "Functions" tab in your DevSpace dashboard
+  </Step>
+  <Step title="Add New Function">
+    Click "Add new function" to start the creation process
+  </Step>
+  <Step title="Configure Function">
+    Fill in the required function details
+  </Step>
+</Steps>
+
+## Function Configuration
+
+When creating a function, provide the following information:
+
+### Basic Information
+
+<ParamField path="name" type="string" required>
+  A clear, descriptive name for your function (e.g., "get_order_status")
+</ParamField>
+
+<ParamField path="description" type="string" required>
+  Detailed description of what the function does and when Sate should use it
+</ParamField>
+
+<ParamField path="url" type="string" required>
+  The complete URL of your HTTP endpoint. Path and query parameters will be automatically extracted from the URL.
+</ParamField>
+
+### Parameter Configuration
+
+For each parameter automatically detected from your URL, you need to configure:
+
+<ParamField path="description" type="string" required>
+  Clear description of what this parameter represents
+</ParamField>
+
+<ParamField path="type" type="string" required>
+  The parameter data type: `string`, `boolean`, or `number`
+</ParamField>
+
+<ParamField path="provider" type="string" required>
+  Who provides this parameter value:
+  - `organisation`: You provide the value
+  - `sate`: Sate (AI) determines the value from context
+</ParamField>
+
+#### Organization-Provided Parameters
+
+When you select `organisation` as the provider, you have two options:
+
+1. **Direct Value**: Provide a static value for the parameter
+2. **Leaf Function**: Reference another function that returns the parameter value
+
+##### Using Leaf Functions
+
+A leaf function is a simple function without any parameters that returns data. Requirements:
+- Must be a function without path or query parameters
+- If the main function is unauthenticated, the leaf function must also be unauthenticated
+- You can optionally specify a `response_path` to extract specific data from the leaf function's response
+
+### Security & Environment
+
+<ParamField path="requires_auth" type="boolean" required>
+  Whether this function requires customer authentication
+</ParamField>
+
+<ParamField path="environment" type="string" required>
+  Set to "live" for customer use or "dev" for testing only
+</ParamField>
+
+## Function Examples
+
+### Simple Function (No Parameters)
+
+```http
+GET /api/store-hours
+```
+
+**Configuration:**
+- **Name**: `get_store_hours`
+- **Description**: "Returns current store operating hours and holiday schedules"
+- **Authentication**: Not required
+- **Environment**: Live
+
+### Function with Sate-Provided Parameters
+
+```http
+GET /api/orders/{order_id}
+```
+
+**Configuration:**
+- **Name**: `get_order_details`
+- **Description**: "Retrieves detailed information about a specific customer order"
+- **Authentication**: Required
+- **Environment**: Live
+
+**Parameter Configuration:**
+- `order_id` (string): The unique order identifier
+  - **Provider**: `sate` (AI will extract from customer conversation)
+  - **Description**: "Customer's order ID they're asking about"
+
+### Function with Organization-Provided Parameters
+
+```http
+GET /api/products?category={category}&limit={limit}
+```
+
+**Configuration:**
+- **Name**: `get_products_by_category`
+- **Description**: "Retrieves products filtered by category with pagination"
+- **Authentication**: Not required
+- **Environment**: Live
+
+**Parameter Configuration:**
+- `category` (string): Product category to filter by
+  - **Provider**: `sate` (AI determines from customer request)
+  - **Description**: "Product category the customer is interested in"
+- `limit` (number): Maximum number of products to return
+  - **Provider**: `organisation` (you set a static value like 20)
+  - **Description**: "Number of products to return per request"
+
+### Function Using Leaf Function
+
+```http
+GET /api/user/{user_id}/preferences?store_id={store_id}
+```
+
+**Configuration:**
+- **Name**: `get_user_preferences`
+- **Description**: "Retrieves user preferences for a specific store"
+- **Authentication**: Required
+- **Environment**: Live
+
+**Parameter Configuration:**
+- `user_id` (string): The user's unique identifier
+  - **Provider**: `sate` (AI gets from authentication context)
+  - **Description**: "ID of the authenticated user"
+- `store_id` (string): The store location identifier
+  - **Provider**: `organisation` (use leaf function)
+  - **Leaf Function**: `get_default_store` (returns store information)
+  - **Response Path**: `store.id` (extracts store ID from response)
+
+## Best Practices
+
+### Function Naming
+- Use clear, action-oriented names
+- Follow consistent naming conventions
+- Include the resource being accessed (e.g., `get_user_orders`, `check_inventory_status`)
+
+### Descriptions
+- Explain when Sate should use this function
+- Describe the expected response format
+- Include any important limitations or requirements
+
+### Parameter Configuration
+- Choose the appropriate provider (`sate` vs `organisation`) for each parameter
+- Use leaf functions for dynamic organization-provided values
+- Provide clear descriptions to help Sate understand parameter usage
+- Use appropriate data types (string, number, boolean) for validation
+
+## Response Handling
+
+Your endpoints should return structured JSON responses that Sate can easily interpret:
+
+```json
+{
+  "success": true,
+  "data": {
+    // Your response data
+  },
+  "message": "Optional human-readable message"
+}
+```
+
+<Warning>
+  Ensure your endpoints handle errors gracefully and return appropriate HTTP status codes.
+</Warning>
+
+## Testing Functions
+
+Before deploying functions to production:
+
+1. **Test endpoints independently** - Verify your APIs work correctly
+2. **Use development environment** - Set functions to "dev" mode initially  
+3. **Test authentication flow** - Ensure auth integration works properly
+4. **Validate with Sate** - Test the complete interaction flow
+
+## Monitoring and Debugging
+
+Monitor your function usage through:
+- Server logs for your endpoints
+- DevSpace analytics (coming soon)
+- Customer interaction feedback
+
+## Next Steps
+
+- [Set up authentication](/modules/devspace/authentication) for protected functions
+- [Review API reference](/modules/devspace/api-reference) for callback endpoints
+- [Learn about testing](/modules/devspace/testing) your DevSpace setup

@@ -16,7 +16,10 @@
           {
             "group": "Dev Space",
             "pages": [
-              "modules/devspace/introduction"
+              "modules/devspace/introduction",
+              "modules/devspace/authentication", 
+              "modules/devspace/functions",
+              "modules/devspace/api-reference"
             ]
           },
           {
