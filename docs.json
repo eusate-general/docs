@@ -23,6 +23,15 @@
             ]
           },
           {
+            "group": "Helpdesk",
+            "pages": [
+              "modules/helpdesk/introduction",
+              "modules/helpdesk/sdk",
+              "modules/helpdesk/api",
+              "modules/helpdesk/discord"
+            ]
+          },
+          {
             "group": "Knowledge Base",
             "pages": [
             ]
@@ -43,8 +52,16 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "SDK & API",
+            "group": "Helpdesk API",
             "pages": [
+              "modules/helpdesk/api-reference",
+              "modules/helpdesk/socketio"
+            ]
+          },
+          {
+            "group": "DevSpace API", 
+            "pages": [
+              "modules/devspace/api-reference"
             ]
           }
         ]

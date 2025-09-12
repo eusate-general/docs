@@ -1,0 +1,415 @@
+---
+title: 'Socket.IO Events'
+description: 'Real-time messaging events for Helpdesk integration'
+icon: 'bolt'
+---
+
+import { api_base_url } from '/snippets/platformlinks.mdx';
+
+## Overview
+
+Socket.IO enables real-time bidirectional communication between your application and the Helpdesk system. This allows for instant messaging, live notifications, and seamless customer support experiences.
+
+## Connection
+
+### Authentication
+
+Connect to the Socket.IO server using your API key:
+
+```javascript
+const API_BASE_URL = '{api_base_url}';
+const socket = io(`${API_BASE_URL}/helpdesk?token_source=api&token=YOUR_API_KEY`);
+```
+
+### Connection Response
+
+Upon successful connection, you'll receive a response with this schema:
+
+```json
+{
+  "status_code": 200,
+  "sid": "session_identifier",
+  "message": "Connected successfully",
+  "data": {}
+}
+```
+
+<Warning>
+If authentication fails, the connection will be refused with status_code 400 or 401.
+</Warning>
+
+## Event Flow
+
+The typical conversation flow involves these key events:
+
+<Steps>
+<Step title="Connect">
+Establish authenticated connection to the server
+</Step>
+<Step title="Support">
+Send and receive messages between customer and AI/agent
+</Step>
+<Step title="Mark Read">
+Update read status for better user experience
+</Step>
+<Step title="Close Support">
+End conversations when issues are resolved
+</Step>
+<Step title="Review">
+Collect customer feedback after conversation ends
+</Step>
+</Steps>
+
+## Events Reference
+
+### Support Event
+
+The primary event for sending and receiving messages.
+
+**Event Name:** `support`
+
+#### Request Schema
+
+<ParamField path="session_id" type="string" required>
+Unique identifier for the customer session
+</ParamField>
+
+<ParamField path="message" type="string" required>
+The message content to send
+</ParamField>
+
+<ParamField path="attachment" type="boolean" required>
+Whether this message includes an attachment
+</ParamField>
+
+<ParamField path="ticket_chat_id" type="string">
+Conversation ID. Use `null` for new conversations
+</ParamField>
+
+#### Example Request
+
+```javascript
+socket.emit('support', {
+  session_id: 'customer_123',
+  message: 'Hello, I need help with my order',
+  attachment: false,
+  ticket_chat_id: null // Creates new conversation
+});
+```
+
+#### Response Schema
+
+<ResponseField name="status_code" type="integer">
+HTTP status code (200 for success)
+</ResponseField>
+
+<ResponseField name="sid" type="string">
+Session identifier
+</ResponseField>
+
+<ResponseField name="message" type="string">
+Status message
+</ResponseField>
+
+<ResponseField name="data" type="object">
+Response data containing the message details
+</ResponseField>
+
+**Data Object:**
+
+<ResponseField name="message" type="string">
+The response message content
+</ResponseField>
+
+<ResponseField name="ticket_chat_id" type="string">
+Conversation identifier (new for first message)
+</ResponseField>
+
+<ResponseField name="sender" type="string">
+Response sender: `"sate"` or `"agent"`
+</ResponseField>
+
+<ResponseField name="attachment" type="boolean">
+Whether the response includes an attachment
+</ResponseField>
+
+<ResponseField name="attachment_metadata" type="object">
+Attachment details (if applicable)
+</ResponseField>
+
+<ResponseField name="close_support" type="boolean">
+Whether AI suggests closing the conversation
+</ResponseField>
+
+<ResponseField name="closed_support" type="boolean">
+Whether the conversation is actually closed
+</ResponseField>
+
+<ResponseField name="date_created" type="string">
+ISO timestamp of message creation
+</ResponseField>
+
+<ResponseField name="date_updated" type="string">
+ISO timestamp of last update
+</ResponseField>
+
+#### Example Response
+
+```javascript
+socket.on('support', (response) => {
+  console.log(response);
+  // {
+  //   "status_code": 200,
+  //   "sid": "socket_session_id",
+  //   "message": "Message sent successfully",
+  //   "data": {
+  //     "message": "I'd be happy to help you with your order. Could you provide your order number?",
+  //     "ticket_chat_id": "conv_abc123",
+  //     "sender": "sate",
+  //     "attachment": false,
+  //     "attachment_metadata": null,
+  //     "close_support": false,
+  //     "closed_support": false,
+  //     "date_created": "2024-01-15T10:31:00Z",
+  //     "date_updated": "2024-01-15T10:31:00Z"
+  //   }
+  // }
+});
+```
+
+#### Important Notes
+
+- **New Conversations**: Set `ticket_chat_id` to `null` for the first message. The response will include the new conversation ID.
+- **Continuing Conversations**: Use the `ticket_chat_id` from previous responses to continue the same conversation.
+- **Conversation Limit**: Each customer can have a maximum of 3 open conversations.
+- **Attachments**: Only available when responder is `"agent"`. Sate (AI) responses cannot include attachments.
+
+---
+
+### Mark Conversation Read
+
+Update the read status for better user experience and notifications.
+
+**Event Name:** `mark_conversation_read`
+
+#### Request Schema
+
+<ParamField path="ticket_chat_id" type="string" required>
+The conversation identifier to mark as read
+</ParamField>
+
+<ParamField path="entity" type="string" required>
+Who is marking it as read. Use `"customer"`
+</ParamField>
+
+#### Example Request
+
+```javascript
+socket.emit('mark_conversation_read', {
+  ticket_chat_id: 'conv_abc123',
+  entity: 'customer'
+});
+```
+
+#### Response Schema
+
+```json
+{
+  "status_code": 200,
+  "sid": "socket_session_id",
+  "message": "Marked as read",
+  "data": {}
+}
+```
+
+---
+
+### Enter Support
+
+Notify when a customer enters a conversation (optional for AI conversations).
+
+**Event Name:** `enter_support`
+
+#### Request Schema
+
+<ParamField path="ticket_chat_id" type="string" required>
+The conversation identifier the customer is entering
+</ParamField>
+
+#### Example Request
+
+```javascript
+socket.emit('enter_support', {
+  ticket_chat_id: 'conv_abc123'
+});
+```
+
+#### Response Schema
+
+```json
+{
+  "status_code": 200,
+  "sid": "socket_session_id",
+  "message": "Entered support conversation",
+  "data": {}
+}
+```
+
+---
+
+### Close Support
+
+End a conversation when the issue is resolved.
+
+**Event Name:** `close_support`
+
+<Info>
+Use this event only after Sate indicates closure by setting `close_support: true` in a support response, and the customer confirms they want to end the conversation.
+</Info>
+
+#### Request Schema
+
+<ParamField path="ticket_chat_id" type="string" required>
+The conversation identifier to close
+</ParamField>
+
+#### Example Request
+
+```javascript
+socket.emit('close_support', {
+  ticket_chat_id: 'conv_abc123'
+});
+```
+
+#### Response Schema
+
+The response confirms the conversation is closed:
+
+```json
+{
+  "status_code": 200,
+  "sid": "socket_session_id",
+  "message": "Support conversation closed",
+  "data": {
+    "message": "Thank you for using our support. Your conversation has been closed.",
+    "ticket_chat_id": "conv_abc123",
+    "sender": "sate",
+    "attachment": false,
+    "attachment_metadata": null,
+    "close_support": true,
+    "closed_support": true,
+    "date_created": "2024-01-15T12:00:00Z",
+    "date_updated": "2024-01-15T12:00:00Z"
+  }
+}
+```
+
+---
+
+### Review Support
+
+Collect customer feedback after a conversation ends.
+
+**Event Name:** `review_support`
+
+#### Request Schema
+
+<ParamField path="ticket_chat_id" type="string" required>
+The conversation identifier to review
+</ParamField>
+
+<ParamField path="review" type="string">
+Optional customer feedback text
+</ParamField>
+
+<ParamField path="rating" type="integer" required>
+Customer rating from 1 to 5
+</ParamField>
+
+#### Example Request
+
+```javascript
+socket.emit('review_support', {
+  ticket_chat_id: 'conv_abc123',
+  review: 'Great service, very helpful!',
+  rating: 5
+});
+```
+
+#### Response Schema
+
+```json
+{
+  "status_code": 200,
+  "sid": "socket_session_id",
+  "message": "Review submitted successfully",
+  "data": {}
+}
+```
+
+## Implementation Example
+
+Here's a complete example showing the event flow:
+
+```javascript
+const API_BASE_URL = '{api_base_url}';
+const socket = io(`${API_BASE_URL}/helpdesk?token_source=api&token=${API_KEY}`);
+
+// Handle connection
+socket.on('connect', () => {
+  console.log('Connected to helpdesk');
+});
+
+// Send customer message
+function sendMessage(sessionId, message, conversationId = null) {
+  socket.emit('support', {
+    session_id: sessionId,
+    message: message,
+    attachment: false,
+    ticket_chat_id: conversationId
+  });
+}
+
+// Listen for responses
+socket.on('support', (response) => {
+  if (response.status_code === 200) {
+    const { data } = response;
+    
+    // Display the response message
+    displayMessage(data.message, data.sender);
+    
+    // Check if AI suggests closing
+    if (data.close_support && !data.closed_support) {
+      showCloseConfirmation(data.ticket_chat_id);
+    }
+    
+    // Mark as read
+    socket.emit('mark_conversation_read', {
+      ticket_chat_id: data.ticket_chat_id,
+      entity: 'customer'
+    });
+  }
+});
+
+// Handle conversation closure
+function closeConversation(conversationId) {
+  socket.emit('close_support', {
+    ticket_chat_id: conversationId
+  });
+}
+
+// Submit review
+function submitReview(conversationId, rating, feedback) {
+  socket.emit('review_support', {
+    ticket_chat_id: conversationId,
+    rating: rating,
+    review: feedback
+  });
+}
+```
+
+
+## Next Steps
+
+- [Complete API Reference](/modules/helpdesk/api-reference) for HTTP endpoints
+- [SDK Integration](/modules/helpdesk/sdk) for easier implementation

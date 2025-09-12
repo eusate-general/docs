@@ -1,0 +1,121 @@
+---
+title: 'API Integration'
+description: 'Integrate Eusate Helpdesk using RESTful API and real-time Socket.IO'
+icon: 'webhook'
+---
+
+import { helpdesk, api_base_url, api_key_settings } from '/snippets/platformlinks.mdx';
+
+## Overview
+
+The Helpdesk API provides a comprehensive solution for integrating customer support functionality into your applications. It combines RESTful HTTP endpoints for data retrieval with Socket.IO for real-time messaging.
+
+<Info>
+While API integration offers maximum flexibility, we recommend using our [SDK](/modules/helpdesk/sdk) for faster implementation and built-in best practices.
+</Info>
+
+## Prerequisites
+
+To integrate with the Helpdesk API, you need:
+
+- Ability to make HTTP requests
+- Socket.IO client library for real-time communication
+- Valid API key from your <a href={api_key_settings} target="_blank">api key settings</a>
+
+## Integration Flow
+
+<Steps>
+<Step title="Create Customer Interface">
+Build a support interface where customers can send messages
+</Step>
+<Step title="Generate Session ID">
+Create a unique session_id for each customer using your interface
+</Step>
+<Step title="Fetch Conversations">
+Use the session_id to retrieve existing customer conversations
+</Step>
+<Step title="Load Messages">
+Get individual messages for each conversation
+</Step>
+<Step title="Connect Real-time">
+Establish Socket.IO connection for live messaging
+</Step>
+<Step title="Handle Events">
+Listen and respond to real-time events for seamless communication
+</Step>
+</Steps>
+
+## Authentication
+
+All API requests require authentication using your API key:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+<Warning>
+Keep your API key secure and never expose it in client-side code. Store it as an environment variable on your server.
+</Warning>
+
+## Base URL
+
+All API endpoints use the following base URL:
+
+<div style={{padding: '12px', backgroundColor: '#f6f8fa', border: '1px solid #d1d9e0', borderRadius: '6px', fontFamily: 'monospace', fontSize: '14px'}}>
+  {api_base_url}
+</div>
+
+## Quick Start Example
+
+Here's a basic implementation flow:
+
+```javascript
+const API_BASE_URL = '{api_base_url}';
+
+// 1. Fetch customer conversations
+const conversations = await fetch(`${API_BASE_URL}/api/v1/helpdesk/customer/${sessionId}/conversations/`, {
+  headers: {
+    'Authorization': `Bearer ${API_KEY}`
+  }
+});
+
+// 2. Connect to Socket.IO for real-time messaging
+const socket = io(`${API_BASE_URL}/helpdesk?token_source=api&token=${API_KEY}`);
+
+// 3. Handle connection
+socket.on('connect', () => {
+  console.log('Connected to helpdesk');
+});
+
+// 4. Send customer message
+socket.emit('support', {
+  session_id: sessionId,
+  message: customerMessage,
+  attachment: false,
+  ticket_chat_id: conversationId || null
+});
+
+// 5. Listen for responses
+socket.on('support', (response) => {
+  if (response.status_code === 200) {
+    displayMessage(response.data);
+  }
+});
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="HTTP Endpoints" icon="globe" href="/modules/helpdesk/api-reference">
+Explore all available REST API endpoints
+</Card>
+<Card title="Socket.IO Events" icon="bolt" href="/modules/helpdesk/socketio">
+Learn about real-time messaging events
+</Card>
+</CardGroup>
+
+## Implementation Guides
+
+- [Complete API Reference](/modules/helpdesk/api-reference) - All endpoints and parameters
+- [Socket.IO Events](/modules/helpdesk/socketio) - Real-time messaging guide
+- [SDK Alternative](/modules/helpdesk/sdk) - Easier integration option

@@ -4,12 +4,22 @@ description: 'API documentation for DevSpace callback endpoints'
 icon: 'webhook'
 ---
 
+import { api_base_url } from '/snippets/platformlinks.mdx';
+
 ## Authentication Callback
 
 This endpoint receives authentication data from your login system after a customer successfully authenticates.
 
+### Base URL
+
+All API endpoints use the following base URL:
+
+<div style={{padding: '12px', backgroundColor: '#f6f8fa', border: '1px solid #d1d9e0', borderRadius: '6px', fontFamily: 'monospace', fontSize: '14px'}}>
+  {api_base_url}
+</div>
+
 <Card>
-  <strong>POST</strong> `https://api.dev.eusate.com/api/v1/lab/login/callback`
+  <strong>POST</strong> `{api_base_url}/api/v1/lab/login/callback`
 </Card>
 
 <Warning>
@@ -108,7 +118,8 @@ Returns HTTP status `400` or `403` with error details when there are issues:
 ### Using cURL
 
 ```bash
-curl -X POST https://api.dev.eusate.com/api/v1/lab/login/callback \
+API_BASE_URL="{api_base_url}"
+curl -X POST ${API_BASE_URL}/api/v1/lab/login/callback \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{

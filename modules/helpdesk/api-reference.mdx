@@ -1,0 +1,309 @@
+---
+title: 'API Reference'
+description: 'Complete reference for Helpdesk REST API endpoints'
+icon: 'book'
+---
+
+import { api_base_url } from '/snippets/platformlinks.mdx';
+
+## Authentication
+
+All API requests require authentication using your API key in the Authorization header:
+
+```http
+Authorization: Bearer YOUR_API_KEY
+```
+
+## Base URL
+
+<div style={{padding: '12px', backgroundColor: '#f6f8fa', border: '1px solid #d1d9e0', borderRadius: '6px', fontFamily: 'monospace', fontSize: '14px'}}>
+  {api_base_url}
+</div>
+
+## Endpoints
+
+### Get Conversations
+
+Retrieve all conversations for a customer session.
+
+<Card>
+  <strong>GET</strong> `{api_base_url}/api/v1/helpdesk/customer/{session_id}/conversations/`
+</Card>
+
+#### Parameters
+
+<ParamField path="session_id" type="string" required>
+  Unique identifier for the customer session
+</ParamField>
+
+#### Query Parameters
+
+<ParamField path="closed" type="boolean">
+  Filter conversations by status. Accepts: `true`, `t`, `yes`, `1` (true), anything else is false
+</ParamField>
+
+#### Response
+
+<ResponseField name="conversations" type="array">
+Array of conversation objects
+</ResponseField>
+
+**Conversation Object:**
+
+<ResponseField name="id" type="string">
+Unique conversation identifier
+</ResponseField>
+
+<ResponseField name="date_created" type="string">
+ISO timestamp of creation
+</ResponseField>
+
+<ResponseField name="date_updated" type="string">
+ISO timestamp of last update
+</ResponseField>
+
+<ResponseField name="closed" type="boolean">
+Whether the conversation is closed
+</ResponseField>
+
+<ResponseField name="close_support" type="boolean">
+Whether support closure was requested
+</ResponseField>
+
+<ResponseField name="read_by_customer" type="boolean">
+Customer read status
+</ResponseField>
+
+<ResponseField name="read_by_agent" type="boolean">
+Agent read status
+</ResponseField>
+
+<ResponseField name="responder" type="string">
+Current responder: `"agent"` or `"sate"`
+</ResponseField>
+
+<ResponseField name="ticket" type="string">
+Ticket identifier
+</ResponseField>
+
+<ResponseField name="ticket_slug" type="string">
+Ticket slug for URLs
+</ResponseField>
+
+<ResponseField name="latest_message" type="object">
+Most recent message in the conversation
+</ResponseField>
+
+#### Example Response
+
+```json
+[
+  {
+    "id": "conv_123",
+    "date_created": "2024-01-15T10:30:00Z",
+    "date_updated": "2024-01-15T11:45:00Z",
+    "closed": false,
+    "close_support": false,
+    "read_by_customer": true,
+    "read_by_agent": false,
+    "responder": "sate",
+    "ticket": "ticket_456",
+    "ticket_slug": "customer-inquiry-456",
+    "latest_message": {
+      "id": "msg_789",
+      "date_created": "2024-01-15T11:45:00Z",
+      "date_updated": "2024-01-15T11:45:00Z",
+      "message": "I can help you with that issue.",
+      "sender": "sate",
+      "is_attachment": false,
+      "attachment_metadata": null,
+      "ticket_chat": "conv_123"
+    }
+  }
+]
+```
+
+#### Status Codes
+
+<ResponseField name="200" type="Success">
+Conversations retrieved successfully
+</ResponseField>
+
+<ResponseField name="400" type="Bad Request">
+Invalid parameters or malformed request
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+Invalid or missing API key
+</ResponseField>
+
+<ResponseField name="403" type="Forbidden">
+Access denied for this resource
+</ResponseField>
+
+---
+
+### Get Conversation Messages
+
+Retrieve all messages for a specific conversation.
+
+<Card>
+  <strong>GET</strong> `{api_base_url}/api/v1/helpdesk/customer/{session_id}/conversations/{conversation_id}/messages/`
+</Card>
+
+#### Parameters
+
+<ParamField path="session_id" type="string" required>
+  Unique identifier for the customer session
+</ParamField>
+
+<ParamField path="conversation_id" type="string" required>
+  Unique identifier for the conversation
+</ParamField>
+
+#### Response
+
+<ResponseField name="id" type="string">
+Conversation identifier
+</ResponseField>
+
+<ResponseField name="date_created" type="string">
+ISO timestamp of creation
+</ResponseField>
+
+<ResponseField name="date_updated" type="string">
+ISO timestamp of last update
+</ResponseField>
+
+<ResponseField name="closed" type="boolean">
+Whether the conversation is closed
+</ResponseField>
+
+<ResponseField name="close_support" type="boolean">
+Whether support closure was requested
+</ResponseField>
+
+<ResponseField name="read_by_customer" type="boolean">
+Customer read status
+</ResponseField>
+
+<ResponseField name="read_by_agent" type="boolean">
+Agent read status
+</ResponseField>
+
+<ResponseField name="responder" type="string">
+Current responder: `"agent"` or `"sate"`
+</ResponseField>
+
+<ResponseField name="ticket" type="string">
+Ticket identifier
+</ResponseField>
+
+<ResponseField name="messages" type="array">
+Array of message objects in chronological order
+</ResponseField>
+
+**Message Object:**
+
+<ResponseField name="id" type="string">
+Unique message identifier
+</ResponseField>
+
+<ResponseField name="date_created" type="string">
+ISO timestamp of creation
+</ResponseField>
+
+<ResponseField name="date_updated" type="string">
+ISO timestamp of last update
+</ResponseField>
+
+<ResponseField name="message" type="string">
+Message content
+</ResponseField>
+
+<ResponseField name="sender" type="string">
+Message sender: `"sate"`, `"agent"`, or `"customer"`
+</ResponseField>
+
+<ResponseField name="is_attachment" type="boolean">
+Whether this message contains an attachment
+</ResponseField>
+
+<ResponseField name="attachment_metadata" type="object">
+Attachment details (if is_attachment is true)
+</ResponseField>
+
+<ResponseField name="ticket_chat" type="string">
+Associated conversation ID
+</ResponseField>
+
+#### Example Response
+
+```json
+{
+  "id": "conv_123",
+  "date_created": "2024-01-15T10:30:00Z",
+  "date_updated": "2024-01-15T11:45:00Z",
+  "closed": false,
+  "close_support": false,
+  "read_by_customer": true,
+  "read_by_agent": false,
+  "responder": "sate",
+  "ticket": "ticket_456",
+  "messages": [
+    {
+      "id": "msg_001",
+      "date_created": "2024-01-15T10:30:00Z",
+      "date_updated": "2024-01-15T10:30:00Z",
+      "message": "Hello, I need help with my order",
+      "sender": "customer",
+      "is_attachment": false,
+      "attachment_metadata": null,
+      "ticket_chat": "conv_123"
+    },
+    {
+      "id": "msg_002",
+      "date_created": "2024-01-15T10:31:00Z",
+      "date_updated": "2024-01-15T10:31:00Z",
+      "message": "I'd be happy to help you with your order. Could you provide your order number?",
+      "sender": "sate",
+      "is_attachment": false,
+      "attachment_metadata": null,
+      "ticket_chat": "conv_123"
+    }
+  ]
+}
+```
+
+#### Status Codes
+
+<ResponseField name="200" type="Success">
+Messages retrieved successfully
+</ResponseField>
+
+<ResponseField name="400" type="Bad Request">
+Invalid parameters or malformed request
+</ResponseField>
+
+<ResponseField name="401" type="Unauthorized">
+Invalid or missing API key
+</ResponseField>
+
+<ResponseField name="403" type="Forbidden">
+Access denied for this resource
+</ResponseField>
+
+## Error Responses
+
+All error responses follow this format:
+
+```json
+{
+  "detail": "Error description explaining what went wrong"
+}
+```
+
+## Next Steps
+
+- [Socket.IO Events](/modules/helpdesk/socketio) for real-time messaging
+- [SDK Integration](/modules/helpdesk/sdk) for easier implementation
